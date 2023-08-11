@@ -15,11 +15,11 @@ app.get("/", (req, res) => {
 app.get("/about", (req, res) => {
   // res["content-type"] = "text/html";
   // res.send("Hello WOrld");
-  res.sendFile("./public/about.html");
+  return res.sendFile("./public/about.html");
 });
 
 app.get("/contact", (req, res) => {
-  res.sendFile("./public/contact.html");
+  return res.sendFile("./public/contact.html");
 });
 
 // Starting a server

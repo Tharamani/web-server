@@ -22,35 +22,23 @@ const my_server = () => {
 
   // The Request Handler
   function manageRequestHandler(req, res) {
-    console.log("manageRequestHandler PUBLIC_DIR", PUBLIC_DIR);
-
     const method = req.method;
     const url = req.path;
-    console.log("manageRequestHandler req.path", req.path);
-    console.log("manageRequestHandler url", url);
 
-    // req.path === "/"
-    //   ? (req.path = path.join(PUBLIC_DIR, "index.html"))
-    //   : (req.path = path.join(PUBLIC_DIR, req.path));
-    // if (fs.existsSync(req.path)) res.sendFile(req.path);
-
+    //  "/" => return index file
     if (req.path === "/") req.path = path.join(PUBLIC_DIR, "index.html");
     if (fs.existsSync(req.path)) return res.sendFile(req.path);
 
-    const parsedUrl = URL.parse(url);
-    console.log("manageRequestHandler parsedUrl", parsedUrl);
-
-    if (method === "GET" && get.path.includes(parsedUrl.pathname)) {
-      const handlerIndex = get.path.indexOf(parsedUrl.pathname);
+    //  "/about" => execute the handler function to display about.html file(path sent from app.js)
+    if (method === "GET" && get.path.includes(req.path)) {
+      const handlerIndex = get.path.indexOf(req.path);
       console.log("manageRequestHandler handlerIndex", handlerIndex);
-      get.handler[handlerIndex](req, res);
+      return get.handler[handlerIndex](req, res);
     }
-    // else {
-    const pathParams = path.join(PUBLIC_DIR, parsedUrl.pathname);
-    console.log("manageRequestHandler parsedUrl ELSE", pathParams);
 
-    if (fs.existsSync(pathParams)) res.sendFile(pathParams);
-    // }
+    // otherwise check for the file that matches path
+    if (fs.existsSync(path.join(PUBLIC_DIR, req.path)))
+      res.sendFile(path.join(PUBLIC_DIR, req.path));
   }
 
   const handleRequest = (req, res, socket) => {
@@ -98,12 +86,12 @@ const my_server = () => {
     manageRequestHandler(req, res);
   };
 
-  const handleConnection = (socket) => {
+  const handleConnection = (c) => {
     console.log("connected");
 
     let data = Buffer.from("");
 
-    socket.on("data", (buffer) => {
+    c.on("data", (buffer) => {
       console.log("data", buffer);
 
       // Concatenate existing request buffer with new data
@@ -120,14 +108,23 @@ const my_server = () => {
         const request = requestparser(reqHeader, body);
         console.log("REQUEST", request);
         const response = {};
-        handleRequest(request, response, socket);
+        handleRequest(request, response, c);
       }
+    });
+
+    c.on("end", () => {
+      console.log("client disconnected");
     });
   };
 
   app.listen = (port, callback) => {
+    // Creates a new TCP or IPC server.
     const server = net.createServer(handleConnection);
 
+    server.on("error", (err) => {
+      throw err;
+    });
+    // listens for connections
     server.listen(port, (err) => {
       callback(err);
     });

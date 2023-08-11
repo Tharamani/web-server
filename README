@@ -1,0 +1,10 @@
+// Steps to use
+// clone app
+// open the terminal and run - node app.js
+
+// Open the browser, make request
+// http://localhost:4000 = > Home page 
+// http://localhost:4000/about
+// http://localhost:4000/contact
+
+// OR click on about and contact links in the home page
