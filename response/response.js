@@ -1,3 +1,4 @@
+// responseHeaders
 const createResponse = (statusCode, statusText, body, contentType) => {
   const responseHeaders = [
     `HTTP/1.0 ${statusCode} ${statusText}`,

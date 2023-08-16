@@ -1,5 +1,5 @@
 const requestLine = (reqHeaders) => {
-  const reqLine = reqHeaders.split("\r\n");
+  const reqLine = reqHeaders.split("\r\n"); // split before, and const for clrn
   const [method, path, protocol] = reqLine[0].split(" ");
 
   return [{ method, path, protocol }, reqHeaders.slice(reqLine[0].length + 2)];
@@ -17,6 +17,7 @@ const headers = (reqHeaders) => {
   return [headers, reqHeaders.slice(reqHeaders.length)]; //
 };
 
+// send cl as params
 const body = (reqBody, headers) => {
   let requestBody = "";
 
