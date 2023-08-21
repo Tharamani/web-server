@@ -4,25 +4,24 @@ const requestParser = (reqHeader, body) => {
   let request;
 
   // use const vars
-  let parsed = parse.requestLine(reqHeader); // RL
-  // console.log("requestLine parse RL : ", parsed);
-  if (parsed[0] === null) return null;
+  const parsedRL = parse.requestLine(reqHeader); // RL
+
+  if (parsedRL[0] === null) return null;
+
   //destructure
-  request = parsed[0];
+  const [req, headerBodyStr] = parsedRL;
+  request = req;
 
   // use const vars
-  parsed = parse.headers(parsed[1]); // Headers
-  // console.log("headers parse Headers: ", parsed);
+  const parsedHeaders = parse.headers(headerBodyStr); // Headers
 
-  if (parsed[0] === null) return null;
-  request.headers = parsed[0];
+  if (parsedHeaders[0] === null) return null;
+  const [reqHeaders, bodyStr] = parsedHeaders;
+  request.headers = reqHeaders;
 
-  // use const vars
-  //  send cl as params
-  parsed = parse.body(body, request.headers); // body
-  // console.log("body parse after body : ", parsed[1]);
+  const parsedBody = parse.body(body, request.headers["content-length"]); // body
 
-  if (parsed[0] !== null) request.body = parsed[0];
+  if (parsedBody[0] !== null) request.body = parsedBody[0];
 
   // send object with all 3 data
   return request;

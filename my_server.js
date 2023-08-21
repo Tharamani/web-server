@@ -2,45 +2,73 @@ const net = require("net");
 const { requestParser } = require("./request/requestParser");
 const handleRequest = require("./request/requestHandler");
 
+// carriage return and line feed
+const CRLF = "\r\n\r\n";
+
 const my_server = () => {
   const app = {};
-  const get = {
-    handler: [],
-    path: [],
+  const routes = {};
+
+  app.getRoutes = () => {
+    return routes;
+  };
+
+  //don't use routes
+  app.static = (root) => {
+    addRoute("STATIC", root);
+  };
+
+  const addRoute = (method, path, handler) => {
+    if (!handler) routes[method] = path;
+
+    if (!routes[method]) {
+      routes[method] = {};
+    }
+    routes[method][path] = handler;
   };
 
   app.get = (path, handler) => {
-    get.handler.push(handler);
-
-    get.path.push(path);
-    console.log("GET OBJECT", get);
+    addRoute("GET", path, handler);
   };
 
-  const handleConnection = (c) => {
+  app.post = (path, handler) => {
+    addRoute("POST", path, handler);
+  };
+
+  app.put = (path, handler) => {
+    addRoute("PUT", path, handler);
+  };
+
+  app.delete = (path, handler) => {
+    addRoute("DELETE", path, handler);
+  };
+
+  const handleConnection = (connection) => {
     console.log("connected");
 
     let data = Buffer.from("");
 
-    c.on("data", (buffer) => {
+    connection.on("data", (buffer) => {
       // Concatenate existing request buffer with new data
       data = Buffer.concat([data, buffer]);
 
-      let marker = data.indexOf("\r\n\r\n");
+      let marker = data.indexOf(CRLF);
 
       if (marker !== -1) {
         // If we reached \r\n\r\n, there could be data after it.
-        const body = data.subarray(marker + 4).toString();
+        const body = data.subarray(marker + CRLF.length).toString();
 
         // The header is everything we read, up to and not including \r\n\r\n
         const reqHeader = data.subarray(0, marker).toString();
         const request = requestParser(reqHeader, body);
+
         const response = {};
-        handleRequest.handleRequest(request, response, c, get);
+        handleRequest.handleRequest(request, response, connection, routes);
       }
     });
 
     // wait till end and the parse
-    c.on("end", () => {
+    connection.on("end", () => {
       console.log("client disconnected");
     });
   };

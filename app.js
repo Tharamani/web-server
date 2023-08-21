@@ -2,23 +2,45 @@ const { my_server } = require("./my_server");
 const path = require("path");
 
 const port = 4000;
+const DIR = "public";
+// const DIR = "dist";
 
 const app = my_server();
+
+app.static(path.join(__dirname, "/", DIR));
 
 // Routing
 app.get("/", (req, res) => {
   console.log("Home");
-  // return res.write("Hello WOrld");
+  // res.headers["Content-Type"] = "text/html";sss
+  // return res.send("Hello WOrld");
 });
 
 app.get("/about", (req, res) => {
-  // return res.write("Hello WOrld");
-  return res.send("./public/about.html");
+  res.headers["Content-Type"] = "text/html";
+  // res.headers["Content-Type"] = "text/plain";
+  // return res.send("Hello WOrld");
+  return res.send(`${app.getRoutes().STATIC}/about.html`);
 });
 
 app.get("/contact", (req, res) => {
-  return res.send("./public/contact.html");
+  res.headers["Content-Type"] = "text/html";
+  return res.send(`${app.getRoutes().STATIC}/contact.html`);
 });
+
+app.post("/user", (req, res) => {
+  res.headers["Content-Type"] = "application/json";
+  return res.send(req.body);
+});
+
+app.put(`/user/1`, (req, res) => {
+  res.headers["Content-Type"] = "application/json";
+  return res.send(`Resource updated`);
+});
+
+// app.get("404", (req, res) => {
+//   console.log("404 handler");
+// });
 
 // Starting a server
 app.listen(port, (err) => {

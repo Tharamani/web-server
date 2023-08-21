@@ -1,29 +1,32 @@
+const CRLF = "\r\n";
+
 const requestLine = (reqHeaders) => {
-  const reqLine = reqHeaders.split("\r\n"); // split before, and const for clrn
+  const reqLine = reqHeaders.split(CRLF);
   const [method, path, protocol] = reqLine[0].split(" ");
 
-  return [{ method, path, protocol }, reqHeaders.slice(reqLine[0].length + 2)];
+  return [
+    { method, path, protocol },
+    reqHeaders.slice(reqLine[0].length + CRLF.length),
+  ];
 };
 
 const headers = (reqHeaders) => {
-  // console.log("parseHeaders: reqHeaders ", reqHeaders.length);
   const headers = {};
-  reqHeaders.split("\r\n").forEach((line) => {
+  reqHeaders.split(CRLF).forEach((line) => {
     let [key, value] = line.trim().split(": ");
     headers[key.toLowerCase().trim()] = value.trim();
   });
-  // console.log("parseHeaders: reqHeaders ", reqHeaders.length);
 
   return [headers, reqHeaders.slice(reqHeaders.length)]; //
 };
 
 // send cl as params
-const body = (reqBody, headers) => {
+const body = (reqBody, contentLength) => {
   let requestBody = "";
 
-  if (headers["content-length"] === undefined) return [null, reqBody.slice(0)];
+  if (contentLength === undefined) return [null, reqBody.slice(0)];
 
-  const cLength = parseInt(headers["content-length"]);
+  const cLength = parseInt(contentLength);
 
   requestBody = reqBody.slice(0, cLength);
   return [requestBody, reqBody.slice(cLength)];

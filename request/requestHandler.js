@@ -1,75 +1,60 @@
 const { createResponse } = require("../response/response");
-const path = require("path");
+const staticHandler = require("../handlers/staticHandler");
+const routeHandler = require("../handlers/routeHandler");
 const fs = require("fs");
-const PUBLIC_DIR = path.join(__dirname, "../public", "/");
-// const PUBLIC_DIR = path.join(__dirname, "../dist", "/");
+var mime = require("mime-types");
+const notFoundHandler = require("../handlers/notfoundHandler");
+
+const DIR = "public";
+// const DIR = "dist";
 
 // The Request Handler
-const manageRequestHandler = (req, res, get) => {
-  const method = req.method;
-
-  //  "/" => return index file path
-  if (req.path === "/") req.path = path.join(PUBLIC_DIR, "index.html");
-  if (fs.existsSync(req.path)) return res.send(req.path);
-
-  //  "/about" => execute the handler function to display about.html file
-  if (method === "GET" && get.path.includes(req.path)) {
-    const handlerIndex = get.path.indexOf(req.path);
-    get.handler[handlerIndex](req, res);
-  }
-
-  // otherwise send the file that matches path
-  if (fs.existsSync(path.join(PUBLIC_DIR, req.path)))
-    res.send(path.join(PUBLIC_DIR, req.path));
+const manageRequestHandler = (req, res, routes) => {
+  if (routes.STATIC.includes(DIR)) staticHandler(req, res, routes);
+  routeHandler(req, res, routes);
+  // if (!routes[req.method][req.path]) notFoundHandler(req, res);
 };
 
-// socket to conn
-const handleRequest = (req, res, socket, get, root) => {
+const handleRequest = (req, res, connection, routes) => {
   // This function will handle all the request
-  res.write = (response) => {
-    console.log("res", response);
-    const rs = createResponse(200, "OK", response, getContentType(response));
-    socket.write(rs);
-    socket.write(response);
-  };
+  res.headers = {};
+  res.statusText = res.statusText ? res.statusText : "OK";
+  res.statusCode = res.statusCode ? res.statusCode : 200;
+  res.headers["Content-Type"] ? res.headers["Content-Type"] : "text/plain";
 
-  // object
-  const getContentType = (fileName) => {
-    switch (fileName.split(".").pop()) {
-      case "html":
-        return "text/html";
-      case "css":
-        return "text/css";
-      case "js":
-        return "text/javascript";
-      case "png":
-        return "image/png";
-      case "jpg":
-        return "image/jpeg";
-      case "svg":
-        return "image/svg+xml";
-      default:
-        return "application/octet-stream";
+  res.send = (filePath) => {
+    const mime_type = mime.lookup(filePath);
+
+    // if file
+    if (mime_type) {
+      return fs.readFile(filePath, (err, data) => {
+        if (err) {
+          return notFoundHandler(req, res);
+        } else {
+          res.statusText;
+          const rs = createResponse(
+            res.statusCode,
+            res.statusText,
+            data,
+            mime_type
+          );
+          connection.write(rs);
+          connection.write(data);
+        }
+      });
     }
+
+    const rs = createResponse(
+      res.statusCode,
+      res.statusText,
+      filePath,
+      res.headers["Content-Type"]
+    );
+    connection.write(rs);
+    connection.write(filePath);
   };
 
-  res.send = (pathOfFile) => {
-    const contentType = getContentType(pathOfFile);
-    console.log(" RES SEND FILE", pathOfFile, contentType);
-
-    fs.readFile(pathOfFile, (err, data) => {
-      if (err) {
-        socket.write(404, { "Content-Type": "text/plain" });
-        socket.end("404 Not Found");
-      } else {
-        const rs = createResponse(200, "OK", data, contentType);
-        socket.write(rs);
-        socket.write(data);
-      }
-    });
-  };
-
-  manageRequestHandler(req, res, get, root);
+  manageRequestHandler(req, res, routes);
 };
 
 module.exports = { handleRequest };
