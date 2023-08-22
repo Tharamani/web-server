@@ -8,14 +8,16 @@ const notFoundHandler = require("../handlers/notfoundHandler");
 const DIR = "public";
 // const DIR = "dist";
 
+const handler = [staticHandler, routeHandler, notFoundHandler];
 // The Request Handler
-const manageRequestHandler = (req, res, routes) => {
-  if (routes.STATIC.includes(DIR)) staticHandler(req, res, routes);
-  routeHandler(req, res, routes);
-  // if (!routes[req.method][req.path]) notFoundHandler(req, res);
+const manageRequestHandler = async (req, res, routes, STATIC) => {
+  for (let index = 0; index < handler.length; index++) {
+    const element = handler[index];
+    if (await element(req, res, routes, STATIC)) break;
+  }
 };
 
-const handleRequest = (req, res, connection, routes) => {
+const handleRequest = (req, res, connection, routes, STATIC) => {
   // This function will handle all the request
   res.headers = {};
   res.statusText = res.statusText ? res.statusText : "OK";
@@ -24,6 +26,7 @@ const handleRequest = (req, res, connection, routes) => {
 
   res.send = (filePath) => {
     const mime_type = mime.lookup(filePath);
+    console.log("filePath : mime_type: isHandled", filePath, mime_type);
 
     // if file
     if (mime_type) {
@@ -54,7 +57,7 @@ const handleRequest = (req, res, connection, routes) => {
     connection.write(filePath);
   };
 
-  manageRequestHandler(req, res, routes);
+  manageRequestHandler(req, res, routes, STATIC);
 };
 
 module.exports = { handleRequest };

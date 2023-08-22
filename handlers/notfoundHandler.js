@@ -1,4 +1,4 @@
-const notFoundHandler = (req, res) => {
+const notFoundHandler = async (req, res, routes, STATIC) => {
   console.log("notFoundHandler", res);
   res.headers["Content-Type"] = "text/plain";
   res.statusCode = 404;

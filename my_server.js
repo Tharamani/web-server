@@ -1,6 +1,6 @@
 const net = require("net");
 const { requestParser } = require("./request/requestParser");
-const handleRequest = require("./request/requestHandler");
+const hRequest = require("./request/requestHandler");
 
 // carriage return and line feed
 const CRLF = "\r\n\r\n";
@@ -8,6 +8,7 @@ const CRLF = "\r\n\r\n";
 const my_server = () => {
   const app = {};
   const routes = {};
+  let STATIC = "";
 
   app.getRoutes = () => {
     return routes;
@@ -15,11 +16,11 @@ const my_server = () => {
 
   //don't use routes
   app.static = (root) => {
-    addRoute("STATIC", root);
+    STATIC = root;
   };
 
   const addRoute = (method, path, handler) => {
-    if (!handler) routes[method] = path;
+    // if (!handler) routes[method] = path;
 
     if (!routes[method]) {
       routes[method] = {};
@@ -63,7 +64,7 @@ const my_server = () => {
         const request = requestParser(reqHeader, body);
 
         const response = {};
-        handleRequest.handleRequest(request, response, connection, routes);
+        hRequest.handleRequest(request, response, connection, routes, STATIC);
       }
     });
 

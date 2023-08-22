@@ -20,12 +20,12 @@ app.get("/about", (req, res) => {
   res.headers["Content-Type"] = "text/html";
   // res.headers["Content-Type"] = "text/plain";
   // return res.send("Hello WOrld");
-  return res.send(`${app.getRoutes().STATIC}/about.html`);
+  return res.send(`${path.join(__dirname, "/", DIR)}/about.html`);
 });
 
 app.get("/contact", (req, res) => {
   res.headers["Content-Type"] = "text/html";
-  return res.send(`${app.getRoutes().STATIC}/contact.html`);
+  return res.send(`${path.join(__dirname, "/", DIR)}/contact.html`);
 });
 
 app.post("/user", (req, res) => {
@@ -37,10 +37,6 @@ app.put(`/user/1`, (req, res) => {
   res.headers["Content-Type"] = "application/json";
   return res.send(`Resource updated`);
 });
-
-// app.get("404", (req, res) => {
-//   console.log("404 handler");
-// });
 
 // Starting a server
 app.listen(port, (err) => {
