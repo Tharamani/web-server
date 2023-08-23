@@ -8,13 +8,45 @@ const notFoundHandler = require("../handlers/notfoundHandler");
 const DIR = "public";
 // const DIR = "dist";
 
-const handler = [staticHandler, routeHandler, notFoundHandler];
+function mapParamsToReq(req, routes) {
+  const methodRoutes = routes[req.method];
+
+  if (methodRoutes) {
+    for (const routePattern in methodRoutes) {
+      const routeInfo = methodRoutes[routePattern];
+      const routeKeys = routeInfo.keys;
+      const routeRegex = new RegExp(`^${routePattern}$`);
+      const match = req.path.match(routeRegex);
+
+      if (match) {
+        const params = {};
+        routeKeys.forEach((key, index) => {
+          params[key] = match[index + 1];
+        });
+        req.params = params;
+        console.log("mapParamsToReq req", req);
+      }
+    }
+
+    return req;
+  }
+
+  return null;
+}
+
+const handlers = [staticHandler, routeHandler, notFoundHandler];
 // The Request Handler
 const manageRequestHandler = async (req, res, routes, STATIC) => {
-  for (let index = 0; index < handler.length; index++) {
-    const element = handler[index];
-    if (await element(req, res, routes, STATIC)) break;
+  console.log("Handle routes", routes);
+
+  const mappedReq = mapParamsToReq(req, routes);
+  console.log("mapParamsToReq mappedReq", mappedReq);
+
+  for (let index = 0; index < handlers.length; index++) {
+    const element = handlers[index];
+    if (await element(mappedReq, res, routes, STATIC)) break;
   }
+  // console.log(findRouteHandler(req.method, req.path, routes));
 };
 
 const handleRequest = (req, res, connection, routes, STATIC) => {

@@ -33,9 +33,21 @@ app.post("/user", (req, res) => {
   return res.send(req.body);
 });
 
-app.put(`/user/1`, (req, res) => {
+app.put(`/user/:id`, (req, res) => {
   res.headers["Content-Type"] = "application/json";
-  return res.send(`Resource updated`);
+  return res.send(`Resource updated for ${req.params.id} `);
+});
+
+app.put(`/user/:id/list/:name`, (req, res) => {
+  res.headers["Content-Type"] = "application/json";
+  return res.send(
+    `Resource updated for ${req.params.id} and ${req.params.name}`
+  );
+});
+
+app.delete(`/user/:id`, (req, res) => {
+  res.headers["Content-Type"] = "application/json";
+  return res.send(`Resource deleted for ${req.params.id} `);
 });
 
 // Starting a server

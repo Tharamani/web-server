@@ -20,12 +20,22 @@ const my_server = () => {
   };
 
   const addRoute = (method, path, handler) => {
-    // if (!handler) routes[method] = path;
+    const pathPattern = path
+      .split("/")
+      .map((component) => (component.startsWith(":") ? "([^/]+)" : component))
+      .join("/");
 
     if (!routes[method]) {
       routes[method] = {};
     }
-    routes[method][path] = handler;
+
+    routes[method][pathPattern] = {
+      handler,
+      keys: path
+        .split("/")
+        .filter((component) => component.startsWith(":"))
+        .map((key) => key.slice(1)),
+    };
   };
 
   app.get = (path, handler) => {
