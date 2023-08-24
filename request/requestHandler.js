@@ -43,10 +43,9 @@ const manageRequestHandler = async (req, res, routes, STATIC) => {
   console.log("mapParamsToReq mappedReq", mappedReq);
 
   for (let index = 0; index < handlers.length; index++) {
-    const element = handlers[index];
-    if (await element(mappedReq, res, routes, STATIC)) break;
+    const handler = handlers[index];
+    if (await handler(mappedReq, res, routes, STATIC)) break;
   }
-  // console.log(findRouteHandler(req.method, req.path, routes));
 };
 
 const handleRequest = (req, res, connection, routes, STATIC) => {
